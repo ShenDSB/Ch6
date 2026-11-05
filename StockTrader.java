@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class StockTrader {
 
     public static void main(String[] args) throws FileNotFoundException {
-        Scanner in = new Scanner(new File("tiny.txt"));
+        Scanner in = new Scanner(new File("goog_2004_2010.txt"));
         String symbol = in.next();
         int n = in.nextInt();
 		
@@ -17,8 +17,13 @@ public class StockTrader {
         // TODO: call loadData, then printData
         loadData(in, years, months, prices);
         printData(years, months, prices);
-        System.out.println(indexOfLowest(prices));
-        System.out.println(indexOfHighest(prices));
+        int ind_low = indexOfLowest(prices), ind_high = indexOfHighest(prices);
+        System.out.println("");
+        printlow(years, months, prices, ind_low);
+        printhigh(years, months, prices, ind_high);
+        System.out.println("");
+        double result = simulate(years, months, prices);
+		System.out.printf("Final value: $%,.2f%n", result);
     }
     
     public static void loadData(Scanner in, int[] years, int[] months, double[] prices){
@@ -40,6 +45,14 @@ public class StockTrader {
 			System.out.println(years[i]+ ": " + monthName(months[i])+ ", " + prices[i]);
 			
 		}
+	}
+	
+	public static void printlow(int[] years, int[] months, double[] prices, int i){
+		System.out.println("lowest: $" + prices[i] + " in " + monthName(months[i]) + " " + years[i]);
+	}
+	
+	public static void printhigh(int[] years, int[] months, double[] prices, int i){
+		System.out.println("highest: $" + prices[i] + " in " + monthName(months[i]) + " " + years[i]);
 	}
 	
 	public static int indexOfLowest(double[] prices) {
@@ -64,5 +77,41 @@ public class StockTrader {
 			}
 		}
 		return index;
+	}
+	
+	public static final double START_CASH = 10000.0;
+	public static final double FEE = 10.0;
+
+	public static double simulate(int[] years, int[] months, double[] prices) {
+    double cash = START_CASH;
+    int shares = 0;
+    double boughtAt = 0.0;
+
+    for (int i = 0; i < prices.length; i++) {
+        double[] history = Arrays.copyOf(prices, i + 1);
+        String action = decide(history, shares > 0, boughtAt);
+
+        if (action.equals("BUY") && shares == 0) {
+            int canBuy = (int) ((cash - FEE) / prices[i]);
+            if (canBuy > 0) {
+                shares = canBuy;
+                cash = cash - shares * prices[i] - FEE;
+                boughtAt = prices[i];
+                System.out.printf("%s %d: BUY %d shares at $%.2f%n",
+                        monthName(months[i]), years[i], shares, prices[i]);
+            }
+        } else if (action.equals("SELL") && shares > 0) {
+            cash = cash + shares * prices[i] - FEE;
+            System.out.printf("%s %d: SELL %d shares at $%.2f%n",
+                    monthName(months[i]), years[i], shares, prices[i]);
+            shares = 0;
+            boughtAt = 0.0;
+        }
+    }
+    return cash + shares * prices[prices.length - 1];
+}
+
+	public static String decide(double[] his, boolean a, double boughtAt) {
+		
 	}
 }
