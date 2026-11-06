@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class StockTrader {
 
     public static void main(String[] args) throws FileNotFoundException {
-        Scanner in = new Scanner(new File("goog_2004_2010.txt"));
+        Scanner in = new Scanner(new File("sbux_2007_2016.txt"));
         String symbol = in.next();
         int n = in.nextInt();
 		
@@ -85,12 +85,11 @@ public class StockTrader {
 	public static double simulate(int[] years, int[] months, double[] prices) {
     double cash = START_CASH;
     int shares = 0;
-    double boughtAt = 0.0;
+    double boughtAt = 0.0, lastBuy = 0.0;
 
     for (int i = 0; i < prices.length; i++) {
         double[] history = Arrays.copyOf(prices, i + 1);
         String action = decide(history, shares > 0, boughtAt);
-
         if (action.equals("BUY") && shares == 0) {
             int canBuy = (int) ((cash - FEE) / prices[i]);
             if (canBuy > 0) {
@@ -105,13 +104,30 @@ public class StockTrader {
             System.out.printf("%s %d: SELL %d shares at $%.2f%n",
                     monthName(months[i]), years[i], shares, prices[i]);
             shares = 0;
-            boughtAt = 0.0;
         }
     }
     return cash + shares * prices[prices.length - 1];
 }
 
 	public static String decide(double[] his, boolean a, double boughtAt) {
+		double avg = 0.0, c = 0.0, b = 0;
+		int mon = his.length;
+		if (mon < 12) avg = his[0];
 		
+		else{	
+			for (int i = mon-(mon%12); i<his.length; i++){
+				//System.out.print(his[i] + " ");
+				c += his[i];
+				b ++;
+			}
+			avg = c / b;
+			//System.out.println(" c: " + c + " b: " + b + " avg: " + avg);
+		}
+		//System.out.println("--------------------------");
+		//System.out.println(avg + " " + his[his.length-1]);
+		
+		if (his[his.length-1]<avg*0.9) return "BUY";
+		if (his[his.length-1]>boughtAt*1.3) return "SELL";
+		else return "Hold";
 	}
 }
