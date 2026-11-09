@@ -31,7 +31,7 @@ public class Doubloon{
 	public static void main(String[] args) {
 		String doubloon = toLowerCase("HorseShoEr");
 		System.out.println(doubloon);
-		boolean isdoubloon = toDoubloon("horseshoer");
+		boolean isdoubloon = toDoubloon(doubloon);
 		System.out.println(isdoubloon);
 	}
 	
